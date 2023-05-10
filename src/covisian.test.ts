@@ -90,6 +90,13 @@ describe('CovisianZeroTierAPI', () => {
       }
     });
 
+    it('should constuct with an api instance', async () => {
+      const api = new CovisianZeroTierAPI();
+      const client = new CovisianZeroTierClient(api);
+      expect(client).to.be.instanceOf(CovisianZeroTierClient);
+      expect((client as any).api).to.equal(api);
+    });
+
     it('should not be possible to join a network not in the allowed list', async () => {
       process.env.ZT_NETWORKS = testNetworkId1;
       const client = new CovisianZeroTierClient();
@@ -111,6 +118,17 @@ describe('CovisianZeroTierAPI', () => {
       process.env.ZT_PRIVATE_KEY = privateKey_backup;
     });
 
+  });
+
+  describe('CovisianZeroTierController', () => {
+
+    it('should constuct with an api instance', async () => {
+      const api = new CovisianZeroTierAPI();
+      const client = new CovisianZeroTierController(api);
+      expect(client).to.be.instanceOf(CovisianZeroTierController);
+      expect((client as any).api).to.equal(api);
+    });
+    
   });
 
 });

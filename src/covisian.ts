@@ -45,13 +45,17 @@ export class CovisianZeroTierAPI extends ZeroTierAPI {
 }
 
 export class CovisianZeroTierClient extends ZeroTierClient {
-  constructor(protected api: CovisianZeroTierAPI = new CovisianZeroTierAPI()) {
-    super(api);
+  declare protected api: CovisianZeroTierAPI;
+
+  constructor(optsOrAPI?: ZeroTierAPIOptions | CovisianZeroTierAPI) {
+    super(optsOrAPI instanceof CovisianZeroTierAPI ? optsOrAPI : new CovisianZeroTierAPI(optsOrAPI));
   }
 }
 
 export class CovisianZeroTierController extends ZeroTierController {
-  constructor(protected api: CovisianZeroTierAPI = new CovisianZeroTierAPI()) {
-    super(api);
+  declare protected api: CovisianZeroTierAPI;
+
+  constructor(optsOrAPI?: ZeroTierAPIOptions | CovisianZeroTierAPI) {
+    super(optsOrAPI instanceof CovisianZeroTierAPI ? optsOrAPI : new CovisianZeroTierAPI(optsOrAPI));
   }
 }
