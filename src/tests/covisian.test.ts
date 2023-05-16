@@ -1,6 +1,8 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { CovisianZeroTierAPI, CovisianZeroTierClient, CovisianZeroTierController, ZeroTier, generateSignature } from './covisian.js';
+import fetch from 'node-fetch';
+import { CovisianZeroTierAPI as BrowserCovisianZeroTierAPI, CovisianZeroTierClient as BrowserCovisianZeroTierClient, CovisianZeroTierController as BrowserCovisianZeroTierController, BrowserHTTPClient } from '../browser/covisian.js';
+import { CovisianZeroTierAPI, CovisianZeroTierClient, CovisianZeroTierController, ZeroTier, generateSignature } from '../node/covisian.js';
 
 chai.use(chaiAsPromised);
 
@@ -71,11 +73,37 @@ describe('CovisianZeroTierAPI', () => {
       }
     });
 
-    it('should constuct with an api instance', async () => {
+    afterEach(async () => {
+      global.window = undefined as any;
+      global.fetch = undefined as any;
+    });
+
+    it('should constuct with an api instance (node version)', async () => {
       const api = new CovisianZeroTierAPI();
       const client = new CovisianZeroTierClient(api);
       expect(client).to.be.instanceOf(CovisianZeroTierClient);
       expect((client as any).api).to.equal(api);
+    });
+
+    it('should constuct with an api instance (browser version 1)', async () => {
+      global.window = {} as any;
+      global.fetch = fetch as any;
+      const api = new BrowserCovisianZeroTierAPI();
+      const client = new BrowserCovisianZeroTierClient(api);
+      expect(client).to.be.instanceOf(BrowserCovisianZeroTierClient);
+      expect((client as any).api).to.equal(api);
+      const status = await client.getStatus();
+      expect(status.customVersion).to.equal('Covisian/1.0.0');
+    });
+
+    it('should constuct with an api instance (browser version 2)', async () => {
+      global.window = {} as any;
+      global.fetch = fetch as any;
+      const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
+      const client = new BrowserCovisianZeroTierClient({ signature });
+      expect(client).to.be.instanceOf(BrowserCovisianZeroTierClient);
+      const status = await client.getStatus();
+      expect(status.customVersion).to.equal('Covisian/1.0.0');
     });
 
     it('should not be possible to join a network not in the allowed list', async () => {
@@ -85,10 +113,19 @@ describe('CovisianZeroTierAPI', () => {
       await expect(client.joinNetwork(testNetworkId2)).to.be.rejectedWith('HTTP 403: Forbidden');
     });
 
-    it('should be possible to join a network in the allowed list', async () => {
+    it('should be possible to join a network in the allowed list (node version)', async () => {
       process.env.ZT_NETWORKS = testNetworkId1;
       const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
       const client = new CovisianZeroTierClient({ signature });
+      await expect(client.joinNetwork(testNetworkId1)).to.be.fulfilled;
+    });
+
+    it('should be possible to join a network in the allowed list (browser version)', async () => {
+      global.window = {} as any;
+      global.fetch = fetch as any;
+      process.env.ZT_NETWORKS = testNetworkId1;
+      const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
+      const client = new BrowserCovisianZeroTierClient({ signature });
       await expect(client.joinNetwork(testNetworkId1)).to.be.fulfilled;
     });
 
@@ -105,11 +142,27 @@ describe('CovisianZeroTierAPI', () => {
 
   describe('CovisianZeroTierController', () => {
 
-    it('should constuct with an api instance', async () => {
+    it('should constuct with an api instance (node version)', async () => {
       const api = new CovisianZeroTierAPI();
       const client = new CovisianZeroTierController(api);
       expect(client).to.be.instanceOf(CovisianZeroTierController);
       expect((client as any).api).to.equal(api);
+    });
+    
+    it('should constuct with an api instance (browser version 1)', async () => {
+      global.window = {} as any;
+      global.fetch = fetch as any;
+      const api = new BrowserCovisianZeroTierAPI();
+      const client = new BrowserCovisianZeroTierController(api);
+      expect(client).to.be.instanceOf(BrowserCovisianZeroTierController);
+      expect((client as any).api).to.equal(api);
+    });
+    
+    it('should constuct with an api instance (browser version 2)', async () => {
+      global.window = {} as any;
+      global.fetch = fetch as any;
+      const client = new BrowserCovisianZeroTierController();
+      expect(client).to.be.instanceOf(BrowserCovisianZeroTierController);
     });
     
   });

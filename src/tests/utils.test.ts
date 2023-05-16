@@ -1,6 +1,6 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { generateSignature } from './covisian.js';
+import { generateSignature } from '../node/covisian.js';
 
 chai.use(chaiAsPromised);
 
