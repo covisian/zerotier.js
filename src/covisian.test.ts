@@ -1,6 +1,6 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { CovisianZeroTierAPI, CovisianZeroTierClient, CovisianZeroTierController, ZeroTier } from './covisian.js';
+import { CovisianZeroTierAPI, CovisianZeroTierClient, CovisianZeroTierController, ZeroTier, generateSignature } from './covisian.js';
 
 chai.use(chaiAsPromised);
 
@@ -17,29 +17,9 @@ describe('CovisianZeroTierAPI', () => {
   describe('Constructor', () => {
 
     it('should construct with the specified path and networks', async () => {
-      const api = new CovisianZeroTierAPI({ credentialsPath: 'test', allowedNetworks: ['1234567890abcdef'] });
+      const api = new CovisianZeroTierAPI({ credentialsPath: 'test', signature: '1234567890abcdef' });
       expect((api as any).opts.credentialsPath).to.equal('test');
-      expect((api as any).opts.allowedNetworks).to.deep.equal(['1234567890abcdef']);
-      //expect((api as any).privateKey.to.be.rejectedWith('ENOENT: no such file or directory, open \'test/authtoken.secret\''));
-    });
-
-    it('should construct with the a private key and a list of networks read from the environment', async () => {
-      if (!process.env.ZT_NETWORKS) {
-        process.env.ZT_NETWORKS = '1234567890abcdef,aabbccddeeff0011';
-      }
-      const api = new CovisianZeroTierAPI();
-      expect((api as any).opts.allowedNetworks).to.deep.equal(['1234567890abcdef', 'aabbccddeeff0011']);
-      expect((api as any).privateKey).to.become('1234567890abcdef');
-    });
-
-    it('should fail to construct if the list of networks is missing', async () => {
-      process.env.ZT_NETWORKS = ',';
-      try {
-        new CovisianZeroTierAPI();
-        throw new Error('Expected an error');
-      } catch (err: any) {
-        expect(err.message).to.match(/Missing allowed networks/);
-      }
+      expect((api as any).opts.signature).to.equal('1234567890abcdef');
     });
 
   });
@@ -48,7 +28,8 @@ describe('CovisianZeroTierAPI', () => {
 
     it('should authenticate with a private key', async () => {
       process.env.ZT_NETWORKS = '1234567890abcdef';
-      const api = new CovisianZeroTierAPI();
+      const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
+      const api = new CovisianZeroTierAPI({ signature });
       const status: ZeroTier.Status = await api.invoke('get', '/status');
       expect(status.customVersion).to.equal('Covisian/1.0.0');
     });
@@ -99,13 +80,15 @@ describe('CovisianZeroTierAPI', () => {
 
     it('should not be possible to join a network not in the allowed list', async () => {
       process.env.ZT_NETWORKS = testNetworkId1;
-      const client = new CovisianZeroTierClient();
+      const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
+      const client = new CovisianZeroTierClient({ signature });
       await expect(client.joinNetwork(testNetworkId2)).to.be.rejectedWith('HTTP 403: Forbidden');
     });
 
     it('should be possible to join a network in the allowed list', async () => {
       process.env.ZT_NETWORKS = testNetworkId1;
-      const client = new CovisianZeroTierClient();
+      const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
+      const client = new CovisianZeroTierClient({ signature });
       await expect(client.joinNetwork(testNetworkId1)).to.be.fulfilled;
     });
 
