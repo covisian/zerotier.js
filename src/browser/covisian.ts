@@ -1,22 +1,21 @@
 import { OutgoingHttpHeaders } from 'http';
-import { ZeroTierAPI, ZeroTierAPIOptions } from "../base/api.js";
-import { ZeroTierClient } from "../base/client.js";
-import { ZeroTierController } from "../base/controller.js";
+import { ZeroTierAPI as ZeroTierAPIBase, ZeroTierAPIOptions as ZeroTierAPIOptionsBase } from "../base/api.js";
+import { ZeroTierClient as ZeroTierClientBase } from "../base/client.js";
+import { ZeroTierController as ZeroTierControllerBase } from "../base/controller.js";
 import { BrowserHTTPClient } from './http.js';
 
 export * from "../base/api.js";
 export * from "../base/rules.js";
 export * from "../base/types.js";
-export * from '../base/utils.js';
 export * from "./http.js";
 
-export interface CovisianZeroTierAPIOptions extends Partial<ZeroTierAPIOptions> {
+export interface ZeroTierAPIOptions extends Partial<ZeroTierAPIOptionsBase> {
   signature?: string;
   httpClient?: BrowserHTTPClient;
 }
 
-export class CovisianZeroTierAPI extends ZeroTierAPI {
-  constructor(protected browserOpts: CovisianZeroTierAPIOptions = {}) {
+export class ZeroTierAPI extends ZeroTierAPIBase {
+  constructor(protected browserOpts: ZeroTierAPIOptions = {}) {
     super({ ...browserOpts, httpClient: browserOpts?.httpClient ?? new BrowserHTTPClient()});
   }
 
@@ -34,18 +33,18 @@ export class CovisianZeroTierAPI extends ZeroTierAPI {
   }
 }
 
-export class CovisianZeroTierClient extends ZeroTierClient<CovisianZeroTierAPI> {
-  constructor(opts?: CovisianZeroTierAPIOptions);
-  constructor(api?: CovisianZeroTierAPI);
-  constructor(optsOrAPI?: CovisianZeroTierAPIOptions | CovisianZeroTierAPI) {
-    super(optsOrAPI instanceof CovisianZeroTierAPI ? optsOrAPI : new CovisianZeroTierAPI({ ...optsOrAPI, httpClient: new BrowserHTTPClient() }));
+export class ZeroTierClient extends ZeroTierClientBase<ZeroTierAPI> {
+  constructor(opts?: ZeroTierAPIOptions);
+  constructor(api?: ZeroTierAPI);
+  constructor(optsOrAPI?: ZeroTierAPIOptions | ZeroTierAPI) {
+    super(optsOrAPI instanceof ZeroTierAPI ? optsOrAPI : new ZeroTierAPI({ ...optsOrAPI, httpClient: new BrowserHTTPClient() }));
   }
 }
 
-export class CovisianZeroTierController extends ZeroTierController<CovisianZeroTierAPI> {
-  constructor(opts?: CovisianZeroTierAPIOptions);
-  constructor(api?: CovisianZeroTierAPI);
-  constructor(optsOrAPI?: CovisianZeroTierAPIOptions | CovisianZeroTierAPI) {
-    super(optsOrAPI instanceof CovisianZeroTierAPI ? optsOrAPI : new CovisianZeroTierAPI({ ...optsOrAPI, httpClient: new BrowserHTTPClient() }));
+export class ZeroTierController extends ZeroTierControllerBase<ZeroTierAPI> {
+  constructor(opts?: ZeroTierAPIOptions);
+  constructor(api?: ZeroTierAPI);
+  constructor(optsOrAPI?: ZeroTierAPIOptions | ZeroTierAPI) {
+    super(optsOrAPI instanceof ZeroTierAPI ? optsOrAPI : new ZeroTierAPI({ ...optsOrAPI, httpClient: new BrowserHTTPClient() }));
   }
 }
