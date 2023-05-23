@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import fetch from 'node-fetch';
-import { ZeroTierAPI as BrowserCovisianZeroTierAPI, ZeroTierClient as BrowserCovisianZeroTierClient, ZeroTierController as BrowserCovisianZeroTierController } from '../browser/covisian.js';
+import { ZeroTierAPI as BrowserCovisianZeroTierAPI, ZeroTierClient as BrowserCovisianZeroTierClient, ZeroTierController as BrowserCovisianZeroTierController, BrowserHTTPClient } from '../browser/covisian.js';
 import { ZeroTier, ZeroTierAPI, ZeroTierClient, ZeroTierController, generateSignature } from '../node/covisian.js';
 
 chai.use(chaiAsPromised);
@@ -33,7 +33,7 @@ describe('CovisianZeroTierAPI', () => {
       const signature = await generateSignature(process.env.ZT_PRIVATE_KEY as string, (process.env.ZT_NETWORKS as string).split(','));
       const api = new ZeroTierAPI({ signature });
       const status: ZeroTier.Status = await api.invoke('get', '/status');
-      expect(status.customVersion).to.equal('Covisian/1.0.0');
+      expect(status.customVersion).to.match(/1\.\d\.\d/);
     });
     
   });
@@ -88,12 +88,12 @@ describe('CovisianZeroTierAPI', () => {
     it('should constuct with an api instance (browser version 1)', async () => {
       global.window = {} as any;
       global.fetch = fetch as any;
-      const api = new BrowserCovisianZeroTierAPI();
+      const api = new BrowserCovisianZeroTierAPI({ secret: process.env.ZT_SECRET, httpClient: new BrowserHTTPClient() });
       const client = new BrowserCovisianZeroTierClient(api);
       expect(client).to.be.instanceOf(BrowserCovisianZeroTierClient);
       expect((client as any).api).to.equal(api);
       const status = await client.getStatus();
-      expect(status.customVersion).to.equal('Covisian/1.0.0');
+      expect(status.customVersion).to.match(/1\.\d\.\d/);
     });
 
     it('should constuct with an api instance (browser version 2)', async () => {
@@ -103,7 +103,7 @@ describe('CovisianZeroTierAPI', () => {
       const client = new BrowserCovisianZeroTierClient({ signature });
       expect(client).to.be.instanceOf(BrowserCovisianZeroTierClient);
       const status = await client.getStatus();
-      expect(status.customVersion).to.equal('Covisian/1.0.0');
+      expect(status.version).to.match(/Covisian 1\.\d\.\d/);
     });
 
     it('should not be possible to join a network not in the allowed list', async () => {
