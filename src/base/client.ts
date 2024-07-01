@@ -23,9 +23,10 @@ export class ZeroTierClient<API extends ZeroTierAPI> {
 
   public joinNetwork(id: string): Promise<ZeroTier.Network> {
     return this.api.invoke<ZeroTier.Network>("post", `/network/${id}`, {
-      allowManaged: true,
+      allowDNS: true,
       allowDefault: true,
-      allowDNS: true
+      allowManaged: true,
+      allowGlobal: true
     });
   }
 
